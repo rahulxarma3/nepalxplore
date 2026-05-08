@@ -16,7 +16,7 @@ staticfiles/
 .env
 .env.dev
 .env.*
-!.env.example
+.env.example
 
 # Virtual environment
 venv/
@@ -35,3 +35,5 @@ htmlcov/
 
 # Zip files
 *.zip
+README.md
+DEPLOY.md
