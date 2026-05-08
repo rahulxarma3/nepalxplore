@@ -3,6 +3,7 @@ NepaXplore — Django settings
 """
 from pathlib import Path
 from datetime import timedelta
+import sys
 
 from decouple import config, Csv
 import dj_database_url
@@ -12,20 +13,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # ── Security ─────────────────────────────────────────────────────────────────
-SECRET_KEY = config(
-    "SECRET_KEY",
-    default="dev-secret-key-change-in-production"
-)
-
-if not SECRET_KEY:
-    SECRET_KEY = "dev-secret-key-change-in-production"
-
 SECRET_KEY = config("SECRET_KEY", default="build-unsafe-secret") or "build-unsafe-secret"
 DEBUG = config("DEBUG", default=False, cast=bool)
 
 ALLOWED_HOSTS = config(
     "ALLOWED_HOSTS",
-    default="*",
+    default="localhost,127.0.0.1,healthcheck.railway.app",
     cast=Csv()
 )
 
@@ -79,7 +72,9 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
-    "apps.subscriptions.middleware.SubscriptionMiddleware",
+
+    # Temporarily disabled for deployment/auth debugging
+    # "apps.subscriptions.middleware.SubscriptionMiddleware",
 ]
 
 ROOT_URLCONF = "nepaxplore.urls"
@@ -129,14 +124,14 @@ if REDIS_URL:
             },
         }
     }
-    SESSION_ENGINE = "django.contrib.sessions.backends.cache"
-    SESSION_CACHE_ALIAS = "default"
 else:
     CACHES = {
         "default": {
             "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
         }
     }
+
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
 
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
@@ -152,16 +147,13 @@ LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
 
-
-
-ACCOUNT_LOGIN_METHODS = {"email"}
-
-ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
+# django-allauth safe config for your current version
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = "email"
 ACCOUNT_EMAIL_VERIFICATION = "none"
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = False
+
 ACCOUNT_ADAPTER = "apps.accounts.adapter.AccountAdapter"
 SOCIALACCOUNT_ADAPTER = "apps.accounts.adapter.SocialAccountAdapter"
 
@@ -204,11 +196,7 @@ if USE_R2_STORAGE:
     AWS_DEFAULT_ACL = None
     AWS_S3_FILE_OVERWRITE = False
 
-    MEDIA_URL = (
-        f"https://{AWS_S3_CUSTOM_DOMAIN}/"
-        if AWS_S3_CUSTOM_DOMAIN
-        else "/media/"
-    )
+    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/" if AWS_S3_CUSTOM_DOMAIN else "/media/"
 else:
     DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
     MEDIA_ROOT = BASE_DIR / "media"
@@ -254,17 +242,17 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # ── Security for production ───────────────────────────────────────────────────
 if not DEBUG:
-
     SECURE_SSL_REDIRECT = False
-
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
+
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+
+    SESSION_COOKIE_SAMESITE = "Lax"
+    CSRF_COOKIE_SAMESITE = "Lax"
+
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
     X_FRAME_OPTIONS = "DENY"
 
 
@@ -292,8 +280,6 @@ SIMPLE_JWT = {
 
 # ── Test configuration ────────────────────────────────────────────────────────
 TEST_RUNNER = "django.test.runner.DiscoverRunner"
-
-import sys
 
 if "test" in sys.argv:
     PASSWORD_HASHERS = [
