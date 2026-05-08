@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}{% if query %}Search: {{ query }}{% else %}Search{% endif %} — NepaXplore{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+  <!-- Search bar -->
+  <form method="GET" action="{% url 'core:search' %}" class="mb-10">
+    <div class="relative max-w-2xl">
+      <input type="text" name="q" value="{{ query }}"
+             placeholder="Search destinations, videos, routes..."
+             autofocus
+             class="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-surface-card border border-white/10 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-brand-500 transition" />
+      <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+      </svg>
+      {% if query %}
+      <a href="{% url 'core:search' %}" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition text-lg leading-none">×</a>
+      {% endif %}
+    </div>
+  </form>
+
+  {% if query %}
+
+    {% if total == 0 %}
+    <!-- No results -->
+    <div class="text-center py-20">
+      <div class="text-4xl mb-4">🔍</div>
+      <h2 class="text-xl font-semibold text-white mb-2">No results for "{{ query }}"</h2>
+      <p class="text-slate-400 text-sm">Try a different search term, or browse the <a href="{% url 'content:feed' %}" class="text-brand-400 hover:text-brand-300">free feed</a>.</p>
+    </div>
+
+    {% else %}
+    <p class="text-slate-400 text-sm mb-8">{{ total }} result{{ total|pluralize }} for "<span class="text-white">{{ query }}</span>"</p>
+
+    <!-- Videos -->
+    {% if results.videos %}
+    <section class="mb-12">
+      <h2 class="text-lg font-bold text-white mb-4">
+        Videos
+        <span class="text-sm font-normal text-slate-500 ml-2">{{ results.videos|length }}</span>
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for video in results.videos %}
+          {% include "partials/video_card.html" with video=video %}
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- Destinations -->
+    {% if results.destinations %}
+    <section class="mb-12">
+      <h2 class="text-lg font-bold text-white mb-4">
+        Destinations
+        <span class="text-sm font-normal text-slate-500 ml-2">{{ results.destinations|length }}</span>
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for dest in results.destinations %}
+        <a href="{% url 'destinations:detail' dest.slug %}"
+           class="group relative rounded-2xl overflow-hidden aspect-video block">
+          <img src="{{ dest.cover_image.url }}" alt="{{ dest.name }}"
+               class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+          <div class="absolute bottom-3 left-3">
+            <p class="text-white font-semibold">{{ dest.name }}</p>
+            <p class="text-slate-300 text-xs">{{ dest.region }}</p>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- Trekking routes -->
+    {% if results.routes %}
+    <section class="mb-12">
+      <h2 class="text-lg font-bold text-white mb-4">
+        Trekking Routes
+        <span class="text-sm font-normal text-slate-500 ml-2">{{ results.routes|length }}</span>
+      </h2>
+      <div class="space-y-3">
+        {% for route in results.routes %}
+        <div class="flex items-center gap-4 p-4 rounded-xl bg-surface-card border border-white/5 hover:border-brand-500/30 transition">
+          <div class="w-20 h-14 rounded-lg overflow-hidden shrink-0">
+            <img src="{{ route.cover_image.url }}" alt="{{ route.name }}" class="w-full h-full object-cover" />
+          </div>
+          <div>
+            <p class="text-white font-medium text-sm">{{ route.name }}</p>
+            <div class="flex items-center gap-3 mt-1 text-xs text-slate-400">
+              <span>📍 {{ route.destination.name }}</span>
+              <span class="px-1.5 py-0.5 rounded-full
+                {% if route.difficulty == 'easy' %}bg-green-500/20 text-green-400
+                {% elif route.difficulty == 'moderate' %}bg-amber-500/20 text-amber-400
+                {% elif route.difficulty == 'hard' %}bg-orange-500/20 text-orange-400
+                {% else %}bg-red-500/20 text-red-400{% endif %}">
+                {{ route.get_difficulty_display }}
+              </span>
+              <span>{{ route.duration_days }} days</span>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- Subscriber upsell if non-subscriber got limited results -->
+    {% if not is_subscribed and results.videos %}
+    <div class="rounded-2xl border border-brand-500/20 bg-brand-500/5 p-6 flex items-center justify-between gap-4">
+      <div>
+        <p class="text-white font-semibold text-sm mb-1">See all destinations & trekking routes</p>
+        <p class="text-slate-400 text-xs">Subscribe to search the full library — destinations, routes, culture guides, and more.</p>
+      </div>
+      <a href="{% url 'subscriptions:plans' %}"
+         class="shrink-0 px-4 py-2 rounded-xl bg-brand-500 text-white text-sm font-medium hover:bg-brand-600 transition">
+        Subscribe
+      </a>
+    </div>
+    {% endif %}
+
+    {% endif %}
+
+  {% else %}
+  <!-- No query yet -->
+  <div class="text-center py-20">
+    <div class="text-4xl mb-4">🏔️</div>
+    <p class="text-slate-400">Search for destinations, videos, trekking routes, and more.</p>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

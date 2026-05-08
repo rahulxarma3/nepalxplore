@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Redirecting to eSewa...{% endblock %}
+{% block content %}
+<div class="min-h-[60vh] flex items-center justify-center">
+  <div class="text-center">
+    <div class="w-12 h-12 border-2 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+    <p class="text-slate-400 text-sm">Redirecting you to eSewa...</p>
+  </div>
+</div>
+
+<!-- Auto-submitting form to eSewa -->
+<form id="esewa-form" method="POST" action="{{ esewa_url }}" class="hidden">
+  <input type="hidden" name="amount" value="{{ amount }}" />
+  <input type="hidden" name="tax_amount" value="0" />
+  <input type="hidden" name="total_amount" value="{{ amount }}" />
+  <input type="hidden" name="transaction_uuid" value="{{ product_id }}" />
+  <input type="hidden" name="product_code" value="{{ merchant_code }}" />
+  <input type="hidden" name="product_service_charge" value="0" />
+  <input type="hidden" name="product_delivery_charge" value="0" />
+  <input type="hidden" name="success_url" value="{{ success_url }}" />
+  <input type="hidden" name="failure_url" value="{{ failure_url }}" />
+  <input type="hidden" name="signed_field_names" value="total_amount,transaction_uuid,product_code" />
+  <input type="hidden" name="signature" value="{{ signature }}" />
+</form>
+
+<script>
+  document.getElementById('esewa-form').submit();
+</script>
+{% endblock %}

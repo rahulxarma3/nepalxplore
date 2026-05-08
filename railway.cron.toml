@@ -1,0 +1,16 @@
+# NepaXplore — Railway cron services
+# Deploy TWO separate cron services in Railway dashboard
+
+# ── Cron 1: Expire subscriptions + send expiry warnings ───────────────────────
+# Schedule: 30 18 * * *  (18:30 UTC = midnight 00:15 NPT)
+# Command:  python manage.py expire_subscriptions
+
+# ── Cron 2: Process bookings (auto checkout, arrivals, no-shows) ──────────────
+# Schedule: 15 18 * * *  (18:15 UTC = midnight 00:00 NPT)
+# Command:  python manage.py process_bookings
+
+# Both cron services connect to the same GitHub repo
+# and use the same environment variables as the main app service
+
+[build]
+builder = "nixpacks"

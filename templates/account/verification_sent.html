@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Verify your email — NepaXplore{% endblock %}
+{% block content %}
+<div class="min-h-[70vh] flex items-center justify-center px-4">
+  <div class="w-full max-w-md text-center">
+    <div class="text-5xl mb-6">📬</div>
+    <h1 class="text-2xl font-bold text-white mb-3">Check your inbox</h1>
+    <p class="text-slate-400 mb-6">
+      We've sent a verification link to your email address.
+      Click it to activate your account and start exploring Nepal.
+    </p>
+    <p class="text-xs text-slate-500">
+      Didn't get it? Check your spam folder, or
+      <a href="{% url 'account_email' %}" class="text-brand-400 hover:text-brand-300">resend verification email</a>.
+    </p>
+  </div>
+</div>
+{% endblock %}

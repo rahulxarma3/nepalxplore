@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Booking {{ booking.reference }} — NepaXplore{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 sm:px-6 py-10">
+
+  <div class="flex items-center justify-between mb-8">
+    <h1 class="text-2xl font-bold text-white">Booking Details</h1>
+    <a href="{% url 'bookings:my_bookings' %}" class="text-sm text-slate-400 hover:text-white transition">← My bookings</a>
+  </div>
+
+  <!-- Status banner -->
+  <div class="mb-6 px-4 py-3 rounded-xl flex items-center gap-3
+    {% if booking.status == 'confirmed' %}bg-green-500/10 border border-green-500/20
+    {% elif booking.status == 'paid' %}bg-blue-500/10 border border-blue-500/20
+    {% elif booking.status == 'checked_in' %}bg-brand-500/10 border border-brand-500/20
+    {% elif booking.status == 'checked_out' %}bg-slate-500/10 border border-slate-500/20
+    {% elif booking.status == 'cancelled' %}bg-red-500/10 border border-red-500/20
+    {% else %}bg-amber-500/10 border border-amber-500/20{% endif %}">
+    <span class="text-2xl">
+      {% if booking.status == 'confirmed' %}✅
+      {% elif booking.status == 'paid' %}🕐
+      {% elif booking.status == 'checked_in' %}🏨
+      {% elif booking.status == 'checked_out' %}🏁
+      {% elif booking.status == 'cancelled' %}❌
+      {% elif booking.status == 'no_show' %}⚠️
+      {% else %}💳{% endif %}
+    </span>
+    <div>
+      <p class="font-semibold text-white text-sm">{{ booking.get_status_display }}</p>
+      {% if booking.status == 'paid' %}<p class="text-xs text-slate-400">Waiting for hotel confirmation — usually within a few hours.</p>{% endif %}
+      {% if booking.status == 'confirmed' %}<p class="text-xs text-slate-400">Your booking is confirmed. See you on {{ booking.check_in|date:"M d, Y" }}!</p>{% endif %}
+      {% if booking.status == 'pending' %}<p class="text-xs text-amber-400">Complete payment to confirm your booking.</p>{% endif %}
+    </div>
+  </div>
+
+  <!-- Main details card -->
+  <div class="rounded-2xl bg-surface-card border border-white/5 p-6 mb-4">
+    <div class="flex items-center gap-3 mb-5 pb-5 border-b border-white/5">
+      {% if booking.hotel.cover_image %}
+      <img src="{{ booking.hotel.cover_image.url }}" class="w-16 h-12 rounded-lg object-cover" />
+      {% endif %}
+      <div>
+        <p class="text-white font-bold">{{ booking.hotel.name }}</p>
+        <p class="text-xs text-slate-400">{{ booking.room_type.name }}</p>
+      </div>
+    </div>
+
+    <dl class="space-y-3 text-sm">
+      <div class="flex justify-between"><dt class="text-slate-400">Reference</dt><dd class="text-white font-mono font-bold">{{ booking.reference }}</dd></div>
+      <div class="flex justify-between"><dt class="text-slate-400">Check-in</dt><dd class="text-white">{{ booking.check_in|date:"l, M d, Y" }}</dd></div>
+      <div class="flex justify-between"><dt class="text-slate-400">Check-out</dt><dd class="text-white">{{ booking.check_out|date:"l, M d, Y" }}</dd></div>
+      <div class="flex justify-between"><dt class="text-slate-400">Duration</dt><dd class="text-white">{{ booking.total_nights }} night(s)</dd></div>
+      <div class="flex justify-between"><dt class="text-slate-400">Guests</dt><dd class="text-white">{{ booking.guests_count }}</dd></div>
+      {% if booking.special_requests %}
+      <div class="flex justify-between"><dt class="text-slate-400">Special requests</dt><dd class="text-white text-right max-w-xs">{{ booking.special_requests }}</dd></div>
+      {% endif %}
+    </dl>
+
+    <div class="mt-4 pt-4 border-t border-white/5 space-y-2 text-sm">
+      <div class="flex justify-between"><span class="text-slate-400">Total stay</span><span class="text-white font-semibold">NPR {{ booking.total_npr|floatformat:0 }}</span></div>
+      <div class="flex justify-between"><span class="text-slate-400">Deposit paid</span><span class="text-green-400">NPR {{ booking.deposit_npr|floatformat:0 }}</span></div>
+      <div class="flex justify-between"><span class="text-slate-400">Balance at hotel</span><span class="text-white">NPR {{ booking.remaining_balance_npr|floatformat:0 }}</span></div>
+    </div>
+  </div>
+
+  <!-- Payment history -->
+  {% if payments %}
+  <div class="rounded-2xl bg-surface-card border border-white/5 p-5 mb-4">
+    <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Payments</h3>
+    {% for payment in payments %}
+    <div class="flex items-center justify-between py-2 {% if not forloop.last %}border-b border-white/5{% endif %}">
+      <div class="flex items-center gap-2">
+        <span>{% if payment.gateway == 'khalti' %}💜{% elif payment.gateway == 'esewa' %}💚{% else %}💳{% endif %}</span>
+        <span class="text-sm text-white capitalize">{{ payment.gateway }} — {{ payment.get_payment_type_display }}</span>
+      </div>
+      <div class="text-right">
+        <p class="text-sm font-medium {% if payment.status == 'success' %}text-green-400{% else %}text-red-400{% endif %}">NPR {{ payment.amount_npr|floatformat:0 }}</p>
+        <p class="text-xs text-slate-500">{{ payment.paid_at|date:"M d, Y H:i" }}</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Actions -->
+  <div class="flex gap-3">
+    {% if booking.status == 'pending' %}
+    <a href="{% url 'bookings:pay_deposit' booking.reference %}"
+       class="flex-1 text-center py-2.5 rounded-xl bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 transition">
+      Complete Payment
+    </a>
+    {% endif %}
+
+    {% if booking.is_cancellable %}
+    <div x-data="{ open: false }" class="{% if booking.status != 'pending' %}flex-1{% endif %}">
+      <button @click="open = true"
+              class="w-full py-2.5 rounded-xl border border-red-500/30 text-red-400 text-sm hover:bg-red-500/10 transition">
+        Cancel Booking
+      </button>
+      <div x-show="open" class="mt-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20">
+        <p class="text-sm text-white mb-3">Are you sure? This action cannot be undone.</p>
+        <form method="POST" action="{% url 'bookings:cancel_booking' booking.reference %}">
+          {% csrf_token %}
+          <input type="text" name="reason" placeholder="Reason for cancellation (optional)"
+                 class="w-full mb-3 px-3 py-2 rounded-lg bg-surface-dark border border-white/10 text-white text-sm focus:outline-none focus:border-red-500" />
+          <div class="flex gap-2">
+            <button type="submit" class="flex-1 py-2 rounded-lg bg-red-500/20 border border-red-500/30 text-red-400 text-sm font-medium hover:bg-red-500/30 transition">Yes, cancel</button>
+            <button type="button" @click="open = false" class="flex-1 py-2 rounded-lg border border-white/10 text-slate-400 text-sm hover:bg-white/5 transition">Keep booking</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

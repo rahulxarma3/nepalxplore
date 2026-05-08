@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% block title %}{{ hotel.name }} — Book a Stay{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+  <!-- Hotel header -->
+  <div class="relative rounded-3xl overflow-hidden h-64 mb-8">
+    {% if hotel.cover_image %}<img src="{{ hotel.cover_image.url }}" class="w-full h-full object-cover" />{% endif %}
+    <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+    <div class="absolute bottom-6 left-6">
+      <span class="text-xs text-brand-400 uppercase tracking-wider">{{ hotel.get_hotel_type_display }}</span>
+      <h1 class="text-3xl font-bold text-white mt-1">{{ hotel.name }}</h1>
+      {% if hotel.rating %}<div class="flex items-center gap-1 mt-1"><span class="text-amber-400 text-sm">★ {{ hotel.rating }}</span></div>{% endif %}
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+    <!-- Room types + booking form -->
+    <div class="lg:col-span-2 space-y-6">
+
+      <!-- Booking form -->
+      <div class="rounded-2xl bg-surface-card border border-white/5 p-6"
+           x-data="bookingWidget('{{ hotel.slug }}')">
+        <h2 class="text-lg font-bold text-white mb-5">Select dates & room</h2>
+
+        <!-- Date pickers -->
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <div>
+            <label class="block text-xs text-slate-400 mb-1.5">Check-in</label>
+            <input type="text" id="check-in-picker" x-model="checkIn"
+                   placeholder="Select date"
+                   class="w-full px-3 py-2.5 rounded-xl bg-surface-dark border border-white/10 text-white text-sm focus:outline-none focus:border-brand-500 transition" />
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1.5">Check-out</label>
+            <input type="text" id="check-out-picker" x-model="checkOut"
+                   placeholder="Select date"
+                   class="w-full px-3 py-2.5 rounded-xl bg-surface-dark border border-white/10 text-white text-sm focus:outline-none focus:border-brand-500 transition" />
+          </div>
+        </div>
+
+        <!-- Nights summary -->
+        <div x-show="nights > 0" class="mb-4 px-3 py-2 rounded-lg bg-brand-500/10 border border-brand-500/20">
+          <p class="text-brand-400 text-sm"><span x-text="nights"></span> night(s) selected</p>
+        </div>
+
+        <!-- Room type selection -->
+        <div class="space-y-3 mb-5">
+          {% for room in room_types %}
+          <label class="block cursor-pointer"
+                 x-bind:class="selectedRoom == '{{ room.pk }}' ? 'ring-2 ring-brand-500' : ''"
+                 @click="selectedRoom = '{{ room.pk }}'; selectedRoomName = '{{ room.name }}'; selectedPrice = {{ room.price_per_night_npr }}">
+            <div class="flex items-center gap-4 p-4 rounded-xl bg-surface-dark border border-white/5 hover:border-brand-500/30 transition">
+              <input type="radio" name="room_type" value="{{ room.pk }}" class="sr-only" />
+              {% if room.cover_image %}
+              <img src="{{ room.cover_image.url }}" class="w-20 h-14 rounded-lg object-cover shrink-0" />
+              {% endif %}
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between">
+                  <p class="text-white font-semibold text-sm">{{ room.name }}</p>
+                  <p class="text-brand-400 font-bold text-sm">NPR {{ room.price_per_night_npr|floatformat:0 }}<span class="text-slate-500 font-normal text-xs">/night</span></p>
+                </div>
+                <div class="flex items-center gap-3 mt-1 text-xs text-slate-400">
+                  <span>👥 Up to {{ room.capacity }} guests</span>
+                  <span>🏠 {{ room.total_rooms }} room(s)</span>
+                </div>
+                {% if room.amenities %}
+                <div class="flex flex-wrap gap-1 mt-2">
+                  {% for amenity in room.amenities|slice:":4" %}
+                  <span class="px-1.5 py-0.5 rounded bg-white/5 text-slate-400 text-xs">{{ amenity }}</span>
+                  {% endfor %}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          </label>
+          {% empty %}
+          <p class="text-slate-500 text-sm">No rooms configured yet.</p>
+          {% endfor %}
+        </div>
+
+        <!-- Guests -->
+        <div class="mb-5">
+          <label class="block text-xs text-slate-400 mb-1.5">Number of guests</label>
+          <select x-model="guests"
+                  class="w-full px-3 py-2.5 rounded-xl bg-surface-dark border border-white/10 text-white text-sm focus:outline-none focus:border-brand-500">
+            {% for i in "12345" %}
+            <option value="{{ forloop.counter }}">{{ forloop.counter }} guest(s)</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Price summary -->
+        <div x-show="nights > 0 && selectedRoom" class="mb-5 rounded-xl bg-surface-dark border border-white/5 p-4">
+          <div class="flex justify-between text-sm mb-1">
+            <span class="text-slate-400">NPR <span x-text="selectedPrice"></span> × <span x-text="nights"></span> night(s)</span>
+            <span class="text-white font-medium">NPR <span x-text="(selectedPrice * nights).toLocaleString()"></span></span>
+          </div>
+          <div class="flex justify-between text-sm mb-3 pb-3 border-b border-white/5">
+            <span class="text-slate-400">Deposit required (30%)</span>
+            <span class="text-amber-400 font-semibold">NPR <span x-text="Math.round(selectedPrice * nights * 0.3 / 50) * 50"></span></span>
+          </div>
+          <p class="text-xs text-slate-500">Pay 30% deposit now to confirm. Remaining balance due at hotel.</p>
+        </div>
+
+        <!-- Book button -->
+        <form method="POST" action="{% url 'bookings:book_room' hotel.slug %}">
+          {% csrf_token %}
+          <input type="hidden" name="room_type" x-bind:value="selectedRoom" />
+          <input type="hidden" name="check_in" x-bind:value="checkIn" />
+          <input type="hidden" name="check_out" x-bind:value="checkOut" />
+          <input type="hidden" name="guests_count" x-bind:value="guests" />
+          <div class="mb-4">
+            <label class="block text-xs text-slate-400 mb-1.5">Special requests (optional)</label>
+            <textarea name="special_requests" rows="2" placeholder="e.g. early check-in, ground floor..."
+                      class="w-full px-3 py-2.5 rounded-xl bg-surface-dark border border-white/10 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-brand-500 resize-none"></textarea>
+          </div>
+          <button type="submit"
+                  x-bind:disabled="!selectedRoom || !checkIn || !checkOut || nights <= 0"
+                  x-bind:class="selectedRoom && checkIn && checkOut && nights > 0 ? 'bg-brand-500 hover:bg-brand-600 cursor-pointer' : 'bg-white/10 cursor-not-allowed'"
+                  class="w-full py-3 rounded-xl text-white font-semibold text-sm transition">
+            Book Now — Pay Deposit
+          </button>
+        </form>
+      </div>
+
+      <!-- Description -->
+      <div class="rounded-2xl bg-surface-card border border-white/5 p-6">
+        <h2 class="text-base font-semibold text-white mb-3">About</h2>
+        <p class="text-slate-300 text-sm leading-relaxed">{{ hotel.description }}</p>
+        {% if hotel.altitude_m %}
+        <p class="text-xs text-slate-500 mt-3">⛰️ Altitude: {{ hotel.altitude_m }}m</p>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <!-- Sidebar -->
+    <div class="space-y-4">
+      <div class="rounded-2xl bg-surface-card border border-white/5 p-5">
+        <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">Quick info</h3>
+        <dl class="space-y-2 text-sm">
+          <div class="flex justify-between"><dt class="text-slate-400">Type</dt><dd class="text-white">{{ hotel.get_hotel_type_display }}</dd></div>
+          <div class="flex justify-between"><dt class="text-slate-400">Location</dt><dd class="text-white">{{ hotel.destination.name }}</dd></div>
+          {% if hotel.altitude_m %}<div class="flex justify-between"><dt class="text-slate-400">Altitude</dt><dd class="text-white">{{ hotel.altitude_m }}m</dd></div>{% endif %}
+          <div class="flex justify-between"><dt class="text-slate-400">Check-in</dt><dd class="text-white">From 12:00 PM</dd></div>
+          <div class="flex justify-between"><dt class="text-slate-400">Check-out</dt><dd class="text-white">By 11:00 AM</dd></div>
+        </dl>
+      </div>
+      <div class="rounded-2xl bg-amber-500/10 border border-amber-500/20 p-4">
+        <p class="text-amber-400 text-xs font-semibold mb-1">30% deposit required</p>
+        <p class="text-slate-400 text-xs">Pay 30% now to secure your booking. Remaining balance is paid directly at the hotel on arrival. Free cancellation 24+ hours before check-in.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function bookingWidget(hotelSlug) {
+  return {
+    checkIn: '', checkOut: '', selectedRoom: '', selectedRoomName: '',
+    selectedPrice: 0, guests: 1,
+    get nights() {
+      if (!this.checkIn || !this.checkOut) return 0;
+      const d = (new Date(this.checkOut) - new Date(this.checkIn)) / 86400000;
+      return d > 0 ? d : 0;
+    },
+    init() {
+      const today = new Date(); today.setHours(0,0,0,0);
+      const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate()+1);
+      flatpickr("#check-in-picker", {
+        minDate: today, dateFormat: "Y-m-d",
+        onChange: (sel, str) => { this.checkIn = str; }
+      });
+      flatpickr("#check-out-picker", {
+        minDate: tomorrow, dateFormat: "Y-m-d",
+        onChange: (sel, str) => { this.checkOut = str; }
+      });
+    }
+  }
+}
+</script>
+{% endblock %}

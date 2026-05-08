@@ -1,0 +1,37 @@
+﻿# Python
+__pycache__/
+*.pyc
+*.pyo
+*.py[cod]
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+
+# Environment — NEVER commit
+.env
+.env.dev
+.env.*
+!.env.example
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.DS_Store
+
+# Coverage / testing
+htmlcov/
+.coverage
+
+# Zip files
+*.zip

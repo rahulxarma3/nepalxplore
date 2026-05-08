@@ -1,0 +1,25 @@
+{% for video in page_obj %}
+  {% include "partials/video_card.html" with video=video %}
+{% empty %}
+  <div class="col-span-full py-16 text-center text-slate-500">
+    <p class="text-lg mb-2">No videos yet in this category.</p>
+    <p class="text-sm">Check back soon — our team is adding new content.</p>
+  </div>
+{% endfor %}
+
+{% if page_obj.has_next %}
+<div class="col-span-full flex justify-center pt-6"
+     hx-get="{% url 'content:feed' %}?page={{ page_obj.next_page_number }}{% if active_category %}&category={{ active_category }}{% endif %}"
+     hx-trigger="revealed"
+     hx-target="#video-grid"
+     hx-swap="beforeend"
+     hx-select=".video-card, [hx-trigger='revealed']">
+  <div class="flex items-center gap-2 text-slate-500 text-sm">
+    <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+    </svg>
+    Loading more...
+  </div>
+</div>
+{% endif %}

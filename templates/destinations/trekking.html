@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Trekking Routes — NepaXplore{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+  <h1 class="text-3xl font-bold text-white mb-2">Trekking Routes</h1>
+  <p class="text-slate-400 mb-6">Explore Nepal's legendary treks — from easy valley walks to Himalayan giants.</p>
+
+  <!-- Difficulty filter -->
+  <div class="flex gap-2 flex-wrap mb-8">
+    {% for val, label in difficulty_choices %}
+    <a href="?difficulty={{ val }}"
+       class="px-4 py-1.5 rounded-full text-sm font-medium transition
+              {% if active_difficulty == val %}bg-brand-500 text-white{% else %}border border-white/10 text-slate-400 hover:text-white hover:border-white/30{% endif %}">
+      {{ label }}
+    </a>
+    {% endfor %}
+    {% if active_difficulty %}
+    <a href="{% url 'destinations:trekking' %}"
+       class="px-4 py-1.5 rounded-full text-sm font-medium border border-white/10 text-slate-400 hover:text-white hover:border-white/30 transition">
+      Clear ✕
+    </a>
+    {% endif %}
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+    {% for route in routes %}
+    <div class="rounded-2xl overflow-hidden bg-surface-card border border-white/5 hover:border-brand-500/30 transition group">
+      <div class="aspect-video overflow-hidden">
+        <img src="{{ route.cover_image.url }}" alt="{{ route.name }}"
+             class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+      </div>
+      <div class="p-4">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs px-2 py-0.5 rounded-full
+            {% if route.difficulty == 'easy' %}bg-green-500/20 text-green-400
+            {% elif route.difficulty == 'moderate' %}bg-amber-500/20 text-amber-400
+            {% elif route.difficulty == 'hard' %}bg-orange-500/20 text-orange-400
+            {% else %}bg-red-500/20 text-red-400{% endif %}">
+            {{ route.get_difficulty_display }}
+          </span>
+          <span class="text-xs text-slate-400">{{ route.duration_days }} days</span>
+        </div>
+        <h3 class="text-white font-semibold mb-1">{{ route.name }}</h3>
+        <p class="text-xs text-slate-400">📍 {{ route.destination.name }}</p>
+        {% if route.max_altitude_m %}
+        <p class="text-xs text-slate-500 mt-1">Max altitude: {{ route.max_altitude_m }}m</p>
+        {% endif %}
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-span-full text-center py-16 text-slate-500">No trekking routes found.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

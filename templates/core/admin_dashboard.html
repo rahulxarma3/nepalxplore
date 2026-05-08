@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — NepaXplore{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="text-2xl font-bold text-white">Staff Dashboard</h1>
+      <p class="text-slate-400 text-sm mt-0.5">Live overview of NepaXplore</p>
+    </div>
+    <div class="flex gap-3">
+      <a href="{% url 'content:upload_video' %}"
+         class="px-4 py-2 rounded-xl bg-brand-500 text-white text-sm font-medium hover:bg-brand-600 transition">
+        ⬆ Upload Video
+      </a>
+      <a href="/admin/" class="px-4 py-2 rounded-xl border border-white/10 text-slate-300 text-sm hover:bg-white/5 transition">
+        Django Admin →
+      </a>
+    </div>
+  </div>
+
+  <!-- Stat cards -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="rounded-2xl bg-surface-card border border-white/5 p-5">
+      <p class="text-xs text-slate-400 mb-1">Active subscribers</p>
+      <p class="text-3xl font-bold text-white">{{ active_sub_count }}</p>
+      <p class="text-xs text-green-400 mt-1">+{{ new_this_month }} this month</p>
+    </div>
+    <div class="rounded-2xl bg-surface-card border border-white/5 p-5">
+      <p class="text-xs text-slate-400 mb-1">Revenue (30 days)</p>
+      <p class="text-3xl font-bold text-white">NPR {{ revenue_month|floatformat:0 }}</p>
+      <p class="text-xs text-slate-500 mt-1">All gateways combined</p>
+    </div>
+    <div class="rounded-2xl bg-surface-card border border-white/5 p-5">
+      <p class="text-xs text-slate-400 mb-1">Expiring in 7 days</p>
+      <p class="text-3xl font-bold {% if expiring_soon > 0 %}text-amber-400{% else %}text-white{% endif %}">{{ expiring_soon }}</p>
+      <p class="text-xs text-slate-500 mt-1">Need renewal</p>
+    </div>
+    <div class="rounded-2xl bg-surface-card border border-white/5 p-5">
+      <p class="text-xs text-slate-400 mb-1">Published videos</p>
+      <p class="text-3xl font-bold text-white">{{ total_videos }}</p>
+      <p class="text-xs text-blue-400 mt-1">{{ preview_videos }} in free feed</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- Gateway breakdown -->
+    <div class="rounded-2xl bg-surface-card border border-white/5 p-6">
+      <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Payment gateways (30 days)</h2>
+      {% if gateway_stats %}
+      <div class="space-y-3">
+        {% for gw in gateway_stats %}
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">
+              {% if gw.gateway == 'khalti' %}💜
+              {% elif gw.gateway == 'esewa' %}💚
+              {% else %}💳{% endif %}
+            </span>
+            <span class="text-sm text-white capitalize">{{ gw.gateway }}</span>
+            <span class="text-xs text-slate-500">{{ gw.count }} transaction{{ gw.count|pluralize }}</span>
+          </div>
+          <span class="text-sm font-medium text-white">NPR {{ gw.revenue|floatformat:0 }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-sm text-slate-500">No transactions yet this month.</p>
+      {% endif %}
+    </div>
+
+    <!-- Recent uploads -->
+    <div class="rounded-2xl bg-surface-card border border-white/5 p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wider">Recent uploads</h2>
+        <a href="{% url 'content:upload_video' %}" class="text-xs text-brand-400 hover:text-brand-300 transition">Upload new →</a>
+      </div>
+      {% if recent_videos %}
+      <div class="space-y-3">
+        {% for video in recent_videos %}
+        <div class="flex items-center gap-3">
+          <div class="w-14 h-10 rounded-lg overflow-hidden shrink-0">
+            <img src="{{ video.thumbnail_url }}" alt="{{ video.title }}" class="w-full h-full object-cover" />
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm text-white truncate">{{ video.title }}</p>
+            <div class="flex items-center gap-2 mt-0.5">
+              {% if video.is_published %}
+                <span class="text-xs text-green-400">Published</span>
+              {% else %}
+                <span class="text-xs text-amber-400">Draft</span>
+              {% endif %}
+              {% if video.is_feed_preview %}
+                <span class="text-xs text-blue-400">Feed</span>
+              {% endif %}
+              <span class="text-xs text-slate-500">{{ video.view_count }} views</span>
+            </div>
+          </div>
+          <span class="text-xs text-slate-600 shrink-0">{{ video.created_at|date:"M d" }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-sm text-slate-500">No videos yet. <a href="{% url 'content:upload_video' %}" class="text-brand-400">Upload the first one</a>.</p>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <!-- Quick links -->
+  <div class="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <a href="/admin/content/video/" class="p-4 rounded-xl bg-surface-card border border-white/5 hover:border-white/10 transition text-center">
+      <p class="text-xl mb-1">🎬</p>
+      <p class="text-xs text-slate-300">Manage Videos</p>
+    </a>
+    <a href="/admin/destinations/destination/" class="p-4 rounded-xl bg-surface-card border border-white/5 hover:border-white/10 transition text-center">
+      <p class="text-xl mb-1">🗺️</p>
+      <p class="text-xs text-slate-300">Destinations</p>
+    </a>
+    <a href="/admin/subscriptions/subscription/" class="p-4 rounded-xl bg-surface-card border border-white/5 hover:border-white/10 transition text-center">
+      <p class="text-xl mb-1">💳</p>
+      <p class="text-xs text-slate-300">Subscriptions</p>
+    </a>
+    <a href="/admin/accounts/user/" class="p-4 rounded-xl bg-surface-card border border-white/5 hover:border-white/10 transition text-center">
+      <p class="text-xl mb-1">👥</p>
+      <p class="text-xs text-slate-300">Users</p>
+    </a>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Pay Deposit — {{ booking.reference }}{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto px-4 py-16">
+  <div class="text-center mb-8">
+    <h1 class="text-2xl font-bold text-white mb-1">Secure your booking</h1>
+    <p class="text-slate-400 text-sm">Pay 30% deposit to confirm your stay</p>
+  </div>
+
+  <!-- Booking summary -->
+  <div class="rounded-2xl bg-surface-card border border-white/5 p-5 mb-6">
+    <div class="flex items-center gap-3 mb-4">
+      {% if booking.hotel.cover_image %}
+      <img src="{{ booking.hotel.cover_image.url }}" class="w-14 h-10 rounded-lg object-cover" />
+      {% endif %}
+      <div>
+        <p class="text-white font-semibold">{{ booking.hotel.name }}</p>
+        <p class="text-xs text-slate-400">{{ booking.room_type.name }}</p>
+      </div>
+    </div>
+    <dl class="space-y-2 text-sm border-t border-white/5 pt-4">
+      <div class="flex justify-between"><dt class="text-slate-400">Booking ref</dt><dd class="text-white font-mono">{{ booking.reference }}</dd></div>
+      <div class="flex justify-between"><dt class="text-slate-400">Check-in</dt><dd class="text-white">{{ booking.check_in|date:"M d, Y" }}</dd></div>
+      <div class="flex justify-between"><dt class="text-slate-400">Check-out</dt><dd class="text-white">{{ booking.check_out|date:"M d, Y" }}</dd></div>
+      <div class="flex justify-between"><dt class="text-slate-400">Nights</dt><dd class="text-white">{{ booking.total_nights }}</dd></div>
+      <div class="flex justify-between"><dt class="text-slate-400">Guests</dt><dd class="text-white">{{ booking.guests_count }}</dd></div>
+      <div class="flex justify-between border-t border-white/5 pt-2 mt-2">
+        <dt class="text-slate-400">Total stay</dt>
+        <dd class="text-white font-semibold">NPR {{ booking.total_npr|floatformat:0 }}</dd>
+      </div>
+      <div class="flex justify-between">
+        <dt class="text-amber-400 font-semibold">Deposit now (30%)</dt>
+        <dd class="text-amber-400 font-bold text-lg">NPR {{ booking.deposit_npr|floatformat:0 }}</dd>
+      </div>
+      <div class="flex justify-between">
+        <dt class="text-slate-500 text-xs">Balance at hotel</dt>
+        <dd class="text-slate-500 text-xs">NPR {{ booking.remaining_balance_npr|floatformat:0 }}</dd>
+      </div>
+    </dl>
+  </div>
+
+  <!-- Payment methods -->
+  <div class="space-y-3">
+    <p class="text-xs text-slate-400 text-center mb-4">Choose payment method</p>
+
+    <a href="{% url 'bookings:pay_khalti' booking.reference %}"
+       class="flex items-center gap-3 w-full p-4 rounded-2xl bg-[#5C2D91]/20 border border-[#5C2D91]/40 hover:bg-[#5C2D91]/30 transition">
+      <span class="text-2xl">💜</span>
+      <div>
+        <p class="text-white font-semibold text-sm">Pay with Khalti</p>
+        <p class="text-slate-400 text-xs">Fast, easy, Nepal mobile banking</p>
+      </div>
+      <span class="ml-auto text-slate-400 text-sm">NPR {{ booking.deposit_npr|floatformat:0 }}</span>
+    </a>
+
+    <a href="{% url 'bookings:pay_esewa' booking.reference %}"
+       class="flex items-center gap-3 w-full p-4 rounded-2xl bg-[#60BB46]/10 border border-[#60BB46]/30 hover:bg-[#60BB46]/20 transition">
+      <span class="text-2xl">💚</span>
+      <div>
+        <p class="text-white font-semibold text-sm">Pay with eSewa</p>
+        <p class="text-slate-400 text-xs">Nepal's leading digital wallet</p>
+      </div>
+      <span class="ml-auto text-slate-400 text-sm">NPR {{ booking.deposit_npr|floatformat:0 }}</span>
+    </a>
+
+    <a href="{% url 'bookings:pay_stripe' booking.reference %}"
+       class="flex items-center gap-3 w-full p-4 rounded-2xl bg-[#635BFF]/10 border border-[#635BFF]/30 hover:bg-[#635BFF]/20 transition">
+      <span class="text-2xl">💳</span>
+      <div>
+        <p class="text-white font-semibold text-sm">Pay with Card (Stripe)</p>
+        <p class="text-slate-400 text-xs">Visa, Mastercard, international cards</p>
+      </div>
+      <span class="ml-auto text-slate-400 text-sm">NPR {{ booking.deposit_npr|floatformat:0 }}</span>
+    </a>
+  </div>
+
+  <p class="text-xs text-slate-600 text-center mt-6">
+    Booking expires if payment is not completed within 2 hours.
+    <a href="{% url 'bookings:cancel_booking' booking.reference %}" class="text-red-400 hover:text-red-300 ml-1">Cancel booking</a>
+  </p>
+</div>
+{% endblock %}

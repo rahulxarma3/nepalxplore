@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load account %}
+{% block title %}Email Addresses — NepaXplore{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto px-4 py-16">
+  <h1 class="text-2xl font-bold text-white mb-8">Email Addresses</h1>
+
+  <div class="rounded-2xl bg-surface-card border border-white/5 p-6">
+    {% if emailaddresses %}
+    <div class="space-y-3 mb-6">
+      {% for emailaddress in emailaddresses %}
+      <div class="flex items-center justify-between p-3 rounded-xl bg-surface-dark border border-white/5">
+        <div>
+          <p class="text-sm text-white font-medium">{{ emailaddress.email }}</p>
+          <div class="flex items-center gap-2 mt-0.5">
+            {% if emailaddress.verified %}
+              <span class="text-xs text-green-400">Verified</span>
+            {% else %}
+              <span class="text-xs text-amber-400">Unverified</span>
+            {% endif %}
+            {% if emailaddress.primary %}
+              <span class="text-xs text-brand-400">Primary</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="flex gap-2">
+          {% if not emailaddress.primary %}
+          <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="email" value="{{ emailaddress.email }}" />
+            <button name="action_primary" type="submit"
+                    class="px-2 py-1 rounded-lg text-xs border border-white/10 text-slate-400 hover:text-white hover:bg-white/5 transition">
+              Make primary
+            </button>
+          </form>
+          {% endif %}
+          {% if not emailaddress.verified %}
+          <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="email" value="{{ emailaddress.email }}" />
+            <button name="action_send" type="submit"
+                    class="px-2 py-1 rounded-lg text-xs border border-brand-500/30 text-brand-400 hover:bg-brand-500/10 transition">
+              Resend
+            </button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="border-t border-white/5 pt-4">
+      <p class="text-xs text-slate-500 mb-1">To change your email, contact support.</p>
+      <a href="{% url 'accounts:profile' %}" class="text-xs text-brand-400 hover:text-brand-300">← Back to profile</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

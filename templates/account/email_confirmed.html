@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Email confirmed — NepaXplore{% endblock %}
+{% block content %}
+<div class="min-h-[70vh] flex items-center justify-center px-4">
+  <div class="w-full max-w-md text-center">
+    <div class="text-5xl mb-6">✅</div>
+    <h1 class="text-2xl font-bold text-white mb-3">Email confirmed!</h1>
+    <p class="text-slate-400 mb-8">Your account is active. Start exploring Nepal.</p>
+    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+      <a href="{% url 'subscriptions:plans' %}"
+         class="px-6 py-2.5 rounded-xl bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 transition">
+        Subscribe Now
+      </a>
+      <a href="{% url 'content:feed' %}"
+         class="px-6 py-2.5 rounded-xl border border-white/10 text-white text-sm hover:bg-white/5 transition">
+        Browse Free Feed
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

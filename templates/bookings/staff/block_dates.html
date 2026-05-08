@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Block Dates — {{ hotel.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto px-4 py-10">
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="text-xl font-bold text-white">Block Dates</h1>
+      <p class="text-slate-400 text-sm mt-0.5">{{ hotel.name }} — prevent bookings for specific dates</p>
+    </div>
+    <a href="{% url 'bookings:staff_dashboard' hotel.slug %}"
+       class="text-sm text-slate-400 hover:text-white transition">← Dashboard</a>
+  </div>
+
+  <div class="rounded-2xl bg-surface-card border border-white/5 p-6">
+    <form method="POST" class="space-y-5">
+      {% csrf_token %}
+
+      <div>
+        <label class="block text-xs text-slate-400 mb-1.5">Room type</label>
+        <select name="room_type" required
+                class="w-full px-3 py-2.5 rounded-xl bg-surface-dark border border-white/10 text-white text-sm focus:outline-none focus:border-brand-500">
+          {% for rt in room_types %}
+          <option value="{{ rt.pk }}">{{ rt.name }} ({{ rt.total_rooms }} rooms)</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs text-slate-400 mb-1.5">Block from</label>
+          <input type="date" name="block_from" min="{{ today }}" required
+                 class="w-full px-3 py-2.5 rounded-xl bg-surface-dark border border-white/10 text-white text-sm focus:outline-none focus:border-brand-500" />
+        </div>
+        <div>
+          <label class="block text-xs text-slate-400 mb-1.5">Block until</label>
+          <input type="date" name="block_to" min="{{ today }}" required
+                 class="w-full px-3 py-2.5 rounded-xl bg-surface-dark border border-white/10 text-white text-sm focus:outline-none focus:border-brand-500" />
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs text-slate-400 mb-1.5">Reason</label>
+        <input type="text" name="reason" placeholder="e.g. Maintenance, renovation, staff event..."
+               class="w-full px-3 py-2.5 rounded-xl bg-surface-dark border border-white/10 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-brand-500" />
+      </div>
+
+      <div class="rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 text-xs text-amber-400">
+        ⚠️ Blocking dates will prevent new bookings. Existing confirmed bookings for these dates will NOT be affected — handle those manually.
+      </div>
+
+      <button type="submit"
+              class="w-full py-3 rounded-xl bg-brand-500 text-white font-semibold text-sm hover:bg-brand-600 transition">
+        Block Dates
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Hotels & Stays — NepaXplore{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+  <h1 class="text-3xl font-bold text-white mb-2">Hotels &amp; Stays</h1>
+  <p class="text-slate-400 mb-6">From luxury hotels to authentic homestays — find your perfect base in Nepal.</p>
+
+  <!-- Type filter -->
+  <div class="flex gap-2 flex-wrap mb-8">
+    <a href="{% url 'destinations:hotels' %}"
+       class="px-4 py-1.5 rounded-full text-sm font-medium transition
+              {% if not active_type %}bg-brand-500 text-white{% else %}border border-white/10 text-slate-400 hover:text-white{% endif %}">
+      All
+    </a>
+    {% for val, label in type_choices %}
+    <a href="?type={{ val }}"
+       class="px-4 py-1.5 rounded-full text-sm font-medium transition
+              {% if active_type == val %}bg-brand-500 text-white{% else %}border border-white/10 text-slate-400 hover:text-white{% endif %}">
+      {{ label }}
+    </a>
+    {% endfor %}
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+    {% for hotel in hotels %}
+    <div class="rounded-2xl overflow-hidden bg-surface-card border border-white/5 hover:border-brand-500/30 transition group">
+      <div class="aspect-video overflow-hidden relative">
+        <img src="{{ hotel.cover_image.url }}" alt="{{ hotel.name }}"
+             class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+        <div class="absolute top-3 left-3">
+          <span class="px-2 py-0.5 rounded-full bg-black/60 text-white text-xs font-medium">
+            {{ hotel.get_hotel_type_display }}
+          </span>
+        </div>
+      </div>
+      <div class="p-4">
+        <h3 class="text-white font-semibold mb-1">{{ hotel.name }}</h3>
+        <p class="text-xs text-slate-400 mb-2">📍 {{ hotel.destination.name }}</p>
+        {% if hotel.altitude_m %}
+        <p class="text-xs text-slate-500 mb-2">⛰️ {{ hotel.altitude_m }}m altitude</p>
+        {% endif %}
+        <div class="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
+          <div>
+            <span class="text-brand-400 font-semibold text-sm">NPR {{ hotel.price_per_night_npr|floatformat:0 }}</span>
+            <span class="text-slate-500 text-xs"> / night</span>
+          </div>
+          {% if hotel.rating %}
+          <div class="flex items-center gap-1">
+            <span class="text-amber-400 text-xs">★</span>
+            <span class="text-white text-xs font-medium">{{ hotel.rating }}</span>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-span-full text-center py-16 text-slate-500">No hotels listed yet.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Check Out — {{ booking.reference }}{% endblock %}
+
+{% block content %}
+<div class="min-h-[70vh] flex items-center justify-center px-4">
+  <div class="w-full max-w-md">
+    <div class="rounded-2xl bg-surface-card border border-white/10 p-6 sm:p-8">
+      <div class="text-center mb-6">
+        <div class="text-4xl mb-3">🏁</div>
+        <h1 class="text-xl font-bold text-white">Guest Check-Out</h1>
+        <p class="text-slate-400 text-sm mt-1">{{ hotel.name }}</p>
+      </div>
+
+      <div class="rounded-xl bg-surface-dark border border-white/5 p-4 mb-6 space-y-2 text-sm">
+        <div class="flex justify-between"><span class="text-slate-400">Reference</span><span class="text-white font-mono font-bold">{{ booking.reference }}</span></div>
+        <div class="flex justify-between"><span class="text-slate-400">Guest</span><span class="text-white">{{ booking.user.display_name }}</span></div>
+        <div class="flex justify-between"><span class="text-slate-400">Room</span><span class="text-white">{{ booking.room_type.name }}</span></div>
+        <div class="flex justify-between"><span class="text-slate-400">Stay duration</span><span class="text-white">{{ booking.check_in|date:"M d" }} – {{ booking.check_out|date:"M d, Y" }}</span></div>
+        <div class="flex justify-between"><span class="text-slate-400">Checked in</span><span class="text-white">{{ booking.checked_in_at|date:"M d, Y H:i" }}</span></div>
+      </div>
+
+      <div class="rounded-xl bg-green-500/10 border border-green-500/20 p-3 mb-5 text-xs text-green-400">
+        ✅ After checkout, this room will be immediately available for new bookings.
+        The guest and booking engine will both be notified.
+      </div>
+
+      <form method="POST">
+        {% csrf_token %}
+        <button type="submit"
+                class="w-full py-3 rounded-xl bg-green-500/20 border border-green-500/30 text-green-400 font-semibold text-sm hover:bg-green-500/30 transition mb-3">
+          ✅ Mark Guest Checked Out — Free Room
+        </button>
+      </form>
+
+      <a href="{% url 'bookings:staff_dashboard' hotel.slug %}"
+         class="block w-full text-center py-2.5 rounded-xl border border-white/10 text-slate-400 text-sm hover:bg-white/5 transition">
+        ← Back
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}API Documentation — NepaXplore{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+  <div class="mb-10">
+    <h1 class="text-3xl font-bold text-white mb-2">NepaXplore API</h1>
+    <p class="text-slate-400">REST API for the mobile app. Base URL: <code class="text-brand-400 bg-white/5 px-1.5 py-0.5 rounded text-sm">/api/v1/</code></p>
+    <div class="mt-3 flex gap-3 flex-wrap">
+      <span class="px-2.5 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-xs">JSON responses</span>
+      <span class="px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs">JWT authentication</span>
+      <span class="px-2.5 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs">Paginated lists</span>
+    </div>
+  </div>
+
+  <!-- Auth section -->
+  {% include "partials/api_section.html" with title="Authentication" color="teal" endpoints=auth_endpoints %}
+
+  <!-- Feed section -->
+  {% include "partials/api_section.html" with title="Feed & Videos" color="blue" endpoints=video_endpoints %}
+
+  <!-- Destinations section -->
+  {% include "partials/api_section.html" with title="Destinations" color="purple" endpoints=destination_endpoints %}
+
+  <!-- Subscriptions section -->
+  {% include "partials/api_section.html" with title="Subscriptions" color="amber" endpoints=sub_endpoints %}
+
+  <!-- Auth note -->
+  <div class="mt-8 rounded-2xl bg-surface-card border border-white/5 p-6">
+    <h3 class="text-sm font-semibold text-white mb-3">How to authenticate</h3>
+    <p class="text-xs text-slate-400 mb-3">Include the JWT access token in every request header:</p>
+    <code class="block bg-surface-dark rounded-xl p-4 text-xs text-green-400 font-mono">
+      Authorization: Bearer &lt;your_access_token&gt;
+    </code>
+    <p class="text-xs text-slate-500 mt-3">Tokens expire after 1 hour. Use <code class="text-brand-400">/api/v1/auth/refresh/</code> with your refresh token to get a new access token. Refresh tokens last 30 days.</p>
+  </div>
+
+</div>
+{% endblock %}

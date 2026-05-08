@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block title %}Staff Portal — {{ hotel.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">Staff Portal</p>
+      <h1 class="text-2xl font-bold text-white">{{ hotel.name }}</h1>
+    </div>
+    <div class="flex gap-2">
+      <a href="{% url 'bookings:staff_block' hotel.slug %}"
+         class="px-4 py-2 rounded-xl border border-white/10 text-slate-300 text-sm hover:bg-white/5 transition">
+        🚫 Block dates
+      </a>
+      <a href="{% url 'core:admin_dashboard' %}"
+         class="px-4 py-2 rounded-xl border border-white/10 text-slate-300 text-sm hover:bg-white/5 transition">
+        ← Dashboard
+      </a>
+    </div>
+  </div>
+
+  <!-- Today's stat cards -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+    <div class="rounded-2xl bg-surface-card border border-white/5 p-4 text-center">
+      <p class="text-3xl font-bold text-amber-400">{{ pending_confirm }}</p>
+      <p class="text-xs text-slate-400 mt-1">Awaiting confirmation</p>
+    </div>
+    <div class="rounded-2xl bg-surface-card border border-white/5 p-4 text-center">
+      <p class="text-3xl font-bold text-green-400">{{ arriving_today }}</p>
+      <p class="text-xs text-slate-400 mt-1">Arriving today</p>
+    </div>
+    <div class="rounded-2xl bg-surface-card border border-white/5 p-4 text-center">
+      <p class="text-3xl font-bold text-brand-400">{{ active_stays }}</p>
+      <p class="text-xs text-slate-400 mt-1">Currently checked in</p>
+    </div>
+    <div class="rounded-2xl bg-surface-card border border-white/5 p-4 text-center">
+      <p class="text-3xl font-bold text-slate-300">{{ departing_today }}</p>
+      <p class="text-xs text-slate-400 mt-1">Departing today</p>
+    </div>
+  </div>
+
+  <!-- Room availability quick view -->
+  {% if room_types %}
+  <div class="rounded-2xl bg-surface-card border border-white/5 p-5 mb-6">
+    <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Room availability — today</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      {% for rt in room_types %}
+      <div class="rounded-xl bg-surface-dark border border-white/5 p-3 text-center">
+        <p class="text-lg font-bold
+          {% with avail=rt.get_available_count|default:0 %}
+          {% if avail > 0 %}text-green-400{% else %}text-red-400{% endif %}
+          {% endwith %}">
+          {{ rt.get_available_count|default:"—" }}
+        </p>
+        <p class="text-xs text-slate-400 mt-0.5">{{ rt.name }}</p>
+        <p class="text-xs text-slate-600">of {{ rt.total_rooms }} rooms</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Status filter tabs -->
+  <div class="flex gap-2 flex-wrap mb-5">
+    {% for val, label in status_choices %}
+    <a href="?status={{ val }}"
+       class="px-3 py-1.5 rounded-full text-xs font-medium transition
+              {% if status_filter == val %}bg-brand-500 text-white{% else %}border border-white/10 text-slate-400 hover:text-white{% endif %}">
+      {{ label }}
+    </a>
+    {% endfor %}
+    <a href="?status=all"
+       class="px-3 py-1.5 rounded-full text-xs font-medium transition
+              {% if status_filter == 'all' %}bg-brand-500 text-white{% else %}border border-white/10 text-slate-400 hover:text-white{% endif %}">
+      All
+    </a>
+  </div>
+
+  <!-- Bookings table -->
+  {% if bookings %}
+  <div class="rounded-2xl bg-surface-card border border-white/5 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-white/5">
+            <th class="text-left text-xs text-slate-400 font-medium px-4 py-3">Reference</th>
+            <th class="text-left text-xs text-slate-400 font-medium px-4 py-3">Guest</th>
+            <th class="text-left text-xs text-slate-400 font-medium px-4 py-3">Room</th>
+            <th class="text-left text-xs text-slate-400 font-medium px-4 py-3">Check-in</th>
+            <th class="text-left text-xs text-slate-400 font-medium px-4 py-3">Check-out</th>
+            <th class="text-left text-xs text-slate-400 font-medium px-4 py-3">Total</th>
+            <th class="text-left text-xs text-slate-400 font-medium px-4 py-3">Status</th>
+            <th class="text-left text-xs text-slate-400 font-medium px-4 py-3">Action</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-white/5">
+          {% for booking in bookings %}
+          <tr class="hover:bg-white/2 transition
+                     {% if booking.check_in == today and booking.status == 'confirmed' %}bg-green-500/5
+                     {% elif booking.check_out == today and booking.status == 'checked_in' %}bg-amber-500/5
+                     {% elif booking.status == 'paid' %}bg-blue-500/5{% endif %}">
+
+            <td class="px-4 py-3">
+              <span class="font-mono text-white text-xs">{{ booking.reference }}</span>
+              {% if booking.check_in == today and booking.status == 'confirmed' %}
+              <span class="ml-1 px-1.5 py-0.5 rounded bg-green-500/20 text-green-400 text-xs">Today!</span>
+              {% elif booking.check_out == today and booking.status == 'checked_in' %}
+              <span class="ml-1 px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 text-xs">Departs!</span>
+              {% endif %}
+            </td>
+
+            <td class="px-4 py-3">
+              <p class="text-white">{{ booking.user.display_name }}</p>
+              <p class="text-xs text-slate-500">{{ booking.guests_count }} guest(s)</p>
+            </td>
+
+            <td class="px-4 py-3 text-slate-300 text-xs">{{ booking.room_type.name }}</td>
+
+            <td class="px-4 py-3 text-slate-300 text-xs">{{ booking.check_in|date:"M d, Y" }}</td>
+            <td class="px-4 py-3 text-slate-300 text-xs">{{ booking.check_out|date:"M d, Y" }}</td>
+
+            <td class="px-4 py-3">
+              <p class="text-white text-xs">NPR {{ booking.total_npr|floatformat:0 }}</p>
+              <p class="text-xs text-green-400">Dep: {{ booking.deposit_npr|floatformat:0 }}</p>
+            </td>
+
+            <td class="px-4 py-3">
+              <span class="px-2 py-0.5 rounded-full text-xs
+                {% if booking.status == 'confirmed' %}bg-green-500/20 text-green-400
+                {% elif booking.status == 'paid' %}bg-blue-500/20 text-blue-400
+                {% elif booking.status == 'checked_in' %}bg-brand-500/20 text-brand-400
+                {% elif booking.status == 'checked_out' %}bg-slate-500/20 text-slate-400
+                {% elif booking.status == 'cancelled' %}bg-red-500/20 text-red-400
+                {% elif booking.status == 'no_show' %}bg-orange-500/20 text-orange-400
+                {% else %}bg-amber-500/20 text-amber-400{% endif %}">
+                {{ booking.get_status_display }}
+              </span>
+            </td>
+
+            <!-- Action buttons per status -->
+            <td class="px-4 py-3">
+              <div class="flex gap-1.5">
+                {% if booking.status == 'paid' %}
+                  <a href="{% url 'bookings:staff_confirm' hotel.slug booking.pk %}"
+                     class="px-2.5 py-1 rounded-lg bg-green-500/20 text-green-400 text-xs font-medium hover:bg-green-500/30 transition">
+                    Confirm
+                  </a>
+                {% elif booking.status == 'confirmed' %}
+                  <a href="{% url 'bookings:staff_checkin' hotel.slug booking.pk %}"
+                     class="px-2.5 py-1 rounded-lg bg-brand-500/20 text-brand-400 text-xs font-medium hover:bg-brand-500/30 transition">
+                    Check in
+                  </a>
+                {% elif booking.status == 'checked_in' %}
+                  <a href="{% url 'bookings:staff_checkout' hotel.slug booking.pk %}"
+                     class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-400 text-xs font-medium hover:bg-amber-500/30 transition">
+                    Check out
+                  </a>
+                {% endif %}
+
+                {% if booking.status in 'paid,confirmed' %}
+                  <form method="POST" action="{% url 'bookings:staff_no_show' hotel.slug booking.pk %}"
+                        onsubmit="return confirm('Mark as no-show?')">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="px-2.5 py-1 rounded-lg border border-white/10 text-slate-400 text-xs hover:text-orange-400 hover:border-orange-500/30 transition">
+                      No show
+                    </button>
+                  </form>
+                {% endif %}
+              </div>
+            </td>
+
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {% else %}
+  <div class="text-center py-16 text-slate-500">
+    <p class="text-lg mb-1">No bookings</p>
+    <p class="text-sm">Filter: {{ status_filter }}</p>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

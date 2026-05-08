@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% block title %}Upload Video — NepaXplore{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="text-2xl font-bold text-white">Upload Video</h1>
+      <p class="text-slate-400 text-sm mt-1">Add historical and cultural content for Nepal's tourists.</p>
+    </div>
+    <a href="/admin/content/video/"
+       class="px-4 py-2 rounded-xl border border-white/10 text-slate-300 text-sm hover:bg-white/5 transition">
+      Manage in Admin →
+    </a>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+    <!-- Upload form -->
+    <div class="lg:col-span-2">
+      <form method="POST" enctype="multipart/form-data" class="space-y-6">
+        {% csrf_token %}
+
+        <!-- Title -->
+        <div>
+          <label class="block text-sm font-medium text-slate-300 mb-1.5">Title *</label>
+          {{ form.title }}
+          {% if form.title.errors %}
+            <p class="text-red-400 text-xs mt-1">{{ form.title.errors|join:", " }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Description -->
+        <div>
+          <label class="block text-sm font-medium text-slate-300 mb-1.5">Description *</label>
+          {{ form.description }}
+          {% if form.description.errors %}
+            <p class="text-red-400 text-xs mt-1">{{ form.description.errors|join:", " }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Category + Location row -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-1.5">Category</label>
+            {{ form.category }}
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-1.5">Location</label>
+            {{ form.location }}
+          </div>
+        </div>
+
+        <!-- Language + Duration row -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-1.5">Language</label>
+            {{ form.language }}
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-1.5">Duration (seconds)</label>
+            {{ form.duration_seconds }}
+            <p class="text-xs text-slate-500 mt-1">e.g. 315 = 5:15</p>
+          </div>
+        </div>
+
+        <!-- Video file -->
+        <div>
+          <label class="block text-sm font-medium text-slate-300 mb-1.5">Video File * (MP4 / WebM / MOV, max 2GB)</label>
+          <div class="relative border-2 border-dashed border-white/10 rounded-xl p-6 text-center hover:border-brand-500/40 transition"
+               x-data="{ fileName: '' }"
+               @dragover.prevent
+               @drop.prevent="fileName = $event.dataTransfer.files[0]?.name">
+            <input type="file" name="video_file" accept="video/mp4,video/webm,video/quicktime"
+                   class="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                   @change="fileName = $event.target.files[0]?.name" />
+            <div x-show="!fileName">
+              <p class="text-2xl mb-2">🎬</p>
+              <p class="text-sm text-slate-400">Drag & drop or click to select video</p>
+            </div>
+            <div x-show="fileName" class="text-sm text-brand-400 font-medium" x-text="fileName"></div>
+          </div>
+          {% if form.video_file.errors %}
+            <p class="text-red-400 text-xs mt-1">{{ form.video_file.errors|join:", " }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Thumbnail -->
+        <div>
+          <label class="block text-sm font-medium text-slate-300 mb-1.5">Thumbnail * (JPG/PNG, max 5MB)</label>
+          <div class="relative border-2 border-dashed border-white/10 rounded-xl p-6 text-center hover:border-brand-500/40 transition"
+               x-data="{ imgSrc: '', fileName: '' }"
+               @dragover.prevent>
+            <input type="file" name="thumbnail" accept="image/jpeg,image/png,image/webp"
+                   class="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                   @change="
+                     fileName = $event.target.files[0]?.name;
+                     let reader = new FileReader();
+                     reader.onload = e => imgSrc = e.target.result;
+                     reader.readAsDataURL($event.target.files[0]);
+                   " />
+            <div x-show="!imgSrc">
+              <p class="text-2xl mb-2">🖼️</p>
+              <p class="text-sm text-slate-400">Click to upload thumbnail</p>
+            </div>
+            <img x-show="imgSrc" :src="imgSrc" class="max-h-32 mx-auto rounded-lg object-cover" />
+          </div>
+          {% if form.thumbnail.errors %}
+            <p class="text-red-400 text-xs mt-1">{{ form.thumbnail.errors|join:", " }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Published at -->
+        <div>
+          <label class="block text-sm font-medium text-slate-300 mb-1.5">Publish date & time</label>
+          {{ form.published_at }}
+          <p class="text-xs text-slate-500 mt-1">Leave blank to set automatically when published.</p>
+        </div>
+
+        <!-- Toggle options -->
+        <div class="flex flex-col sm:flex-row gap-4 p-4 rounded-xl bg-surface-card border border-white/5">
+          <label class="flex items-center gap-3 cursor-pointer flex-1">
+            {{ form.is_feed_preview }}
+            <div>
+              <p class="text-sm font-medium text-white">Show on public feed</p>
+              <p class="text-xs text-slate-400">Free preview — no subscription required</p>
+            </div>
+          </label>
+          <label class="flex items-center gap-3 cursor-pointer flex-1">
+            {{ form.is_published }}
+            <div>
+              <p class="text-sm font-medium text-white">Publish immediately</p>
+              <p class="text-xs text-slate-400">Visible to subscribers right away</p>
+            </div>
+          </label>
+        </div>
+
+        <!-- Submit -->
+        <div class="flex gap-3 pt-2">
+          <button type="submit"
+                  class="flex-1 py-3 rounded-xl bg-brand-500 text-white font-semibold text-sm hover:bg-brand-600 transition">
+            Upload Video
+          </button>
+          <a href="{% url 'content:feed' %}"
+             class="px-6 py-3 rounded-xl border border-white/10 text-slate-300 text-sm hover:bg-white/5 transition">
+            Cancel
+          </a>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- Recently uploaded -->
+    <div>
+      <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Recently uploaded</h2>
+      <div class="space-y-3">
+        {% for video in recent %}
+        <div class="flex gap-3 p-3 rounded-xl bg-surface-card border border-white/5">
+          <img src="{{ video.thumbnail_url }}" alt="{{ video.title }}"
+               class="w-16 h-12 rounded-lg object-cover shrink-0" />
+          <div class="min-w-0">
+            <p class="text-sm font-medium text-white truncate">{{ video.title }}</p>
+            <div class="flex items-center gap-2 mt-0.5">
+              {% if video.is_published %}
+                <span class="text-xs text-green-400">Published</span>
+              {% else %}
+                <span class="text-xs text-amber-400">Draft</span>
+              {% endif %}
+              {% if video.is_feed_preview %}
+                <span class="text-xs text-blue-400">• Feed</span>
+              {% endif %}
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">{{ video.created_at|date:"M d, Y" }}</p>
+          </div>
+        </div>
+        {% empty %}
+        <p class="text-sm text-slate-500">No videos yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

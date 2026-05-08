@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% block title %}{{ destination.name }} — NepaXplore{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<div class="relative h-72 sm:h-96 overflow-hidden">
+  <img src="{{ destination.cover_image.url }}" alt="{{ destination.name }}"
+       class="w-full h-full object-cover" />
+  <div class="absolute inset-0 bg-gradient-to-t from-surface-dark via-surface-dark/40 to-transparent"></div>
+  <div class="absolute bottom-0 left-0 right-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+    <p class="text-slate-400 text-sm mb-1">{{ destination.region }}</p>
+    <h1 class="text-4xl font-bold text-white">{{ destination.name }}</h1>
+  </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+    <!-- Main content -->
+    <div class="lg:col-span-2 space-y-10">
+
+      <!-- About -->
+      <div>
+        <h2 class="text-lg font-semibold text-white mb-3">About</h2>
+        <p class="text-slate-300 leading-relaxed">{{ destination.description }}</p>
+        {% if destination.best_season %}
+        <p class="mt-3 text-sm text-slate-400">
+          <span class="text-brand-400">Best season:</span> {{ destination.best_season }}
+        </p>
+        {% endif %}
+      </div>
+
+      <!-- Trekking routes -->
+      {% if routes %}
+      <div>
+        <h2 class="text-lg font-semibold text-white mb-4">Trekking routes</h2>
+        <div class="space-y-3">
+          {% for route in routes %}
+          <div class="flex items-center gap-4 p-4 rounded-xl bg-surface-card border border-white/5 hover:border-brand-500/30 transition">
+            <div class="w-20 h-16 rounded-lg overflow-hidden shrink-0">
+              <img src="{{ route.cover_image.url }}" alt="{{ route.name }}" class="w-full h-full object-cover" />
+            </div>
+            <div class="flex-1 min-w-0">
+              <h3 class="text-white font-medium">{{ route.name }}</h3>
+              <div class="flex items-center gap-3 mt-1 text-xs text-slate-400">
+                <span class="px-2 py-0.5 rounded-full
+                  {% if route.difficulty == 'easy' %}bg-green-500/20 text-green-400
+                  {% elif route.difficulty == 'moderate' %}bg-amber-500/20 text-amber-400
+                  {% elif route.difficulty == 'hard' %}bg-orange-500/20 text-orange-400
+                  {% else %}bg-red-500/20 text-red-400{% endif %}">
+                  {{ route.get_difficulty_display }}
+                </span>
+                <span>{{ route.duration_days }} days</span>
+                {% if route.max_altitude_m %}<span>{{ route.max_altitude_m }}m max</span>{% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Culture -->
+      {% if culture %}
+      <div>
+        <h2 class="text-lg font-semibold text-white mb-4">Culture &amp; Food</h2>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {% for item in culture %}
+          <div class="rounded-xl overflow-hidden bg-surface-card border border-white/5 group">
+            <div class="aspect-video overflow-hidden">
+              <img src="{{ item.cover_image.url }}" alt="{{ item.name }}"
+                   class="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+            </div>
+            <div class="p-3">
+              <span class="text-xs text-brand-400">{{ item.get_content_type_display }}</span>
+              <p class="text-sm font-medium text-white mt-0.5">{{ item.name }}</p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Hotels -->
+      {% if hotels %}
+      <div>
+        <h2 class="text-lg font-semibold text-white mb-4">Where to stay</h2>
+        <div class="space-y-3">
+          {% for hotel in hotels %}
+          <div class="flex gap-4 p-4 rounded-xl bg-surface-card border border-white/5 hover:border-brand-500/30 transition">
+            <div class="w-24 h-18 rounded-lg overflow-hidden shrink-0">
+              <img src="{{ hotel.cover_image.url }}" alt="{{ hotel.name }}" class="w-full h-full object-cover" />
+            </div>
+            <div>
+              <h3 class="text-white font-medium">{{ hotel.name }}</h3>
+              <p class="text-xs text-slate-400 mt-0.5">{{ hotel.get_hotel_type_display }}</p>
+              <p class="text-sm text-brand-400 mt-1 font-medium">NPR {{ hotel.price_per_night_npr|floatformat:0 }} / night</p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+
+    <!-- Sidebar -->
+    <div class="space-y-5">
+
+      <!-- Live weather card -->
+      <div class="rounded-2xl bg-surface-card border border-white/5 p-5">
+        <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Live Weather</h3>
+        {% if weather %}
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <p class="text-4xl font-bold text-white">{{ weather.temp_c }}°C</p>
+            <p class="text-slate-400 text-sm mt-0.5">{{ weather.description }}</p>
+          </div>
+          <img src="https://openweathermap.org/img/wn/{{ weather.icon_code }}@2x.png"
+               alt="{{ weather.description }}" class="w-16 h-16" />
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-xs text-slate-400">
+          <div class="flex items-center gap-1">
+            <span>💧</span> Humidity: {{ weather.humidity }}%
+          </div>
+          <div class="flex items-center gap-1">
+            <span>🌬️</span> Wind: {{ weather.wind_kph }} km/h
+          </div>
+          <div class="flex items-center gap-1">
+            <span>🌡️</span> Feels like: {{ weather.feels_like }}°C
+          </div>
+          {% if destination.altitude_m %}
+          <div class="flex items-center gap-1">
+            <span>⛰️</span> {{ destination.altitude_m }}m alt
+          </div>
+          {% endif %}
+        </div>
+        <p class="text-xs text-slate-600 mt-3">Updates every 30 minutes</p>
+        {% else %}
+        <p class="text-slate-500 text-sm">Weather data unavailable.</p>
+        {% endif %}
+      </div>
+
+      <!-- Quick facts -->
+      <div class="rounded-2xl bg-surface-card border border-white/5 p-5">
+        <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Quick facts</h3>
+        <ul class="space-y-3 text-sm">
+          <li class="flex justify-between">
+            <span class="text-slate-400">Region</span>
+            <span class="text-white">{{ destination.region|default:"—" }}</span>
+          </li>
+          {% if destination.altitude_m %}
+          <li class="flex justify-between">
+            <span class="text-slate-400">Altitude</span>
+            <span class="text-white">{{ destination.altitude_m }}m</span>
+          </li>
+          {% endif %}
+          <li class="flex justify-between">
+            <span class="text-slate-400">Trekking routes</span>
+            <span class="text-white">{{ routes.count }}</span>
+          </li>
+          <li class="flex justify-between">
+            <span class="text-slate-400">Places to stay</span>
+            <span class="text-white">{{ hotels.count }}</span>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

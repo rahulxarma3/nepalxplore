@@ -1,0 +1,28 @@
+<div class="mb-8">
+  <h2 class="text-lg font-bold text-white mb-4">{{ title }}</h2>
+  <div class="space-y-2">
+    {% for ep in endpoints %}
+    <div class="rounded-xl bg-surface-card border border-white/5 p-4">
+      <div class="flex items-start gap-3">
+        <span class="shrink-0 mt-0.5 px-2 py-0.5 rounded text-xs font-mono font-bold
+          {% if ep.method == 'GET' %}bg-green-500/20 text-green-400
+          {% elif ep.method == 'POST' %}bg-blue-500/20 text-blue-400
+          {% elif ep.method == 'PATCH' %}bg-amber-500/20 text-amber-400
+          {% else %}bg-red-500/20 text-red-400{% endif %}">
+          {{ ep.method }}
+        </span>
+        <div class="flex-1 min-w-0">
+          <code class="text-sm text-white font-mono">{{ ep.path }}</code>
+          <p class="text-xs text-slate-400 mt-1">{{ ep.description }}</p>
+          {% if ep.auth %}
+          <span class="inline-block mt-1.5 px-1.5 py-0.5 rounded text-xs bg-brand-500/10 text-brand-400 border border-brand-500/20">🔐 Auth required</span>
+          {% endif %}
+          {% if ep.sub %}
+          <span class="inline-block mt-1.5 ml-1 px-1.5 py-0.5 rounded text-xs bg-purple-500/10 text-purple-400 border border-purple-500/20">💎 Subscriber only</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
