@@ -11,7 +11,7 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# ── Security ──────────────────────────────────────────────────────────────────
+# ── Security ─────────────────────────────────────────────────────────────────
 SECRET_KEY = config(
     "SECRET_KEY",
     default="dev-secret-key-change-in-production"
@@ -19,6 +19,8 @@ SECRET_KEY = config(
 
 if not SECRET_KEY:
     SECRET_KEY = "dev-secret-key-change-in-production"
+
+SECRET_KEY = config("SECRET_KEY", default="build-unsafe-secret") or "build-unsafe-secret"
 DEBUG = config("DEBUG", default=False, cast=bool)
 
 ALLOWED_HOSTS = config(
@@ -29,7 +31,7 @@ ALLOWED_HOSTS = config(
 
 CSRF_TRUSTED_ORIGINS = config(
     "CSRF_TRUSTED_ORIGINS",
-    default="http://localhost:8000",
+    default="http://localhost:8000,https://web-production-653c8e.up.railway.app",
     cast=Csv()
 )
 
@@ -152,7 +154,7 @@ LOGOUT_REDIRECT_URL = "/"
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = "email"
-ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_EMAIL_VERIFICATION = "None"
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_ADAPTER = "apps.accounts.adapter.AccountAdapter"
 SOCIALACCOUNT_ADAPTER = "apps.accounts.adapter.SocialAccountAdapter"
@@ -246,7 +248,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # ── Security for production ───────────────────────────────────────────────────
 if not DEBUG:
+<<<<<<< HEAD
     SECURE_SSL_REDIRECT = False
+=======
+>>>>>>> 7e5b54d66e7970c82f81231f8d4902eac7b1065a
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
