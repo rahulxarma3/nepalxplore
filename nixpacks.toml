@@ -1,11 +1,5 @@
-[phases.setup]
-nixPkgs = ["python311Full", "gcc", "postgresql"]
-
-[phases.install]
-cmds = ["python3 -m pip install --upgrade pip", "python3 -m pip install -r requirements.txt"]
-
 [phases.build]
-cmds = ["python3 manage.py collectstatic --noinput"]
+cmds = ["python manage.py collectstatic --noinput"]
 
 [start]
-cmd = "python3 manage.py migrate --noinput && gunicorn nepaxplore.wsgi --workers 2 --timeout 120 --bind 0.0.0.0:$PORT"
+cmd = "python manage.py migrate --noinput && gunicorn nepaxplore.wsgi --workers 2 --timeout 120 --bind 0.0.0.0:$PORT"
